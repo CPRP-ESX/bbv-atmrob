@@ -1,5 +1,21 @@
+---@diagnostic disable: duplicate-set-field, param-type-mismatch, missing-parameter, lowercase-global, undefined-global
 Main = {}
 registered = 0
+
+local ox_target = exports.ox_target
+local Inventory = exports.ox_inventory
+
+local GetEntityCoords = GetEntityCoords
+local GetClosestObjectOfType = GetClosestObjectOfType
+local DoesEntityExist = DoesEntityExist
+local SetEntityDrawOutlineColor = SetEntityDrawOutlineColor
+local SetEntityDrawOutlineShader = SetEntityDrawOutlineShader
+local StopAnimTask = StopAnimTask
+local GetEntityForwardVector = GetEntityForwardVector
+local RequestModel = RequestModel
+local HasModelLoaded = HasModelLoaded
+local AddExplosion = AddExplosion
+local PlaySoundFrontend = PlaySoundFrontend
 
 CreateThread(function()
     for k,v in pairs(Config.Settings.ATMs) do
@@ -8,50 +24,51 @@ CreateThread(function()
 end)
 
 function Main:Int(Model)
-    exports['qb-target']:AddTargetModel(Model, {
-        options = {
-            {
-                event = 'bbv-robatm:rob',
-                type = 'client',
-                icon = "fa-solid fa-money-bill",
-                label = 'Rob',
-            },
-        },
+    ox_target:addModel(Model, {
+    {
+        event = 'bbv-robatm:rob',
+        name = 'rob_atm',
+        icon = "fas fa-money-bill",
+        label = 'Rob ATM',
         distance = 2.5
-    })
+    }
+})
 end
 
+
 RegisterNetEvent('bbv-robatm:rob',function()
-    local ped = PlayerPedId()
-    local pedCoords = GetEntityCoords(PlayerPedId())
+    local ped = cache.ped
+    local pedCoords = GetEntityCoords(ped)
     for k,v in pairs(Config.Settings.ATMs) do
-        objectId = GetClosestObjectOfType(pedCoords, 2.0, GetHashKey(Config.Settings.ATMs[k]), false)
+        objectId = GetClosestObjectOfType(pedCoords, 2.0, joaat(Config.Settings.ATMs[k]), false)
         if DoesEntityExist(objectId) then
             SetEntityDrawOutlineColor(255, 1, 1, 255)
             SetEntityDrawOutlineShader(0)
-            TriggerEvent('bbv-atmrob:alarm')
-            QBCore.Functions.Progressbar("rob_atm", "Planting the Explosive", 30000, false, true, {
-                disableMovement = true,
-                disableCarMovement = true,
-                disableMouse = true,
-                disableCombat = true,
-             }, {
-                animDict = "anim@amb@clubhouse@tutorial@bkr_tut_ig3@",
-                anim = "machinic_loop_mechandplayer",
-                flags = 49,
-             }, {}, {}, function()
-                Main:Plant(objectId)
-                StopAnimTask(PlayerPedId(), "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 1.0)
-             end, function() -- Cancel
-                StopAnimTask(PlayerPedId(), "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 1.0)
-             end)
+
+            if lib.progressCircle({
+                duration = 5000,
+                label = "Planting the Explosive",
+                position = 'bottom',
+                useWhileDead = false,
+                canCancel = true,
+                disable = {
+                    car = true,
+                    move = true,
+                    comat = true,
+                    mouse = false
+                },
+                anim = {
+                    dict = 'anim@amb@clubhouse@tutorial@bkr_tut_ig3@',
+                    clip = 'machinic_loop_mechandplayer'
+                },
+            }) then  Main:Plant(objectId) else StopAnimTask(ped, "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 1.0) end
         end
     end
 end)
 
 function Main:Plant(ent)
-    local hasitem = QBCore.Functions.HasItem(Config.Settings.BombItemName)
-    if not hasitem then
+    local hasitem = Inventory:Search('count', Config.Settings.BombItemName)
+    if hasitem < 1 then
         Wrapper:Notify("You don't have a bomb")
         return
     end
@@ -63,7 +80,7 @@ function Main:Plant(ent)
    Wrapper:Log('ATM ROBBERY')
    local entpos = GetEntityCoords(ent)
    local entf = GetEntityForwardVector(ent)
-   local pos = vector4(entpos.x ,entpos.y ,entpos.z + 1, 90.0)
+   local pos = vec4(entpos.x ,entpos.y ,entpos.z + 1, 90.0)
    local prop = 'prop_bomb_01'
    RequestModel(prop)
    while not HasModelLoaded(prop) do
@@ -74,14 +91,14 @@ function Main:Plant(ent)
    Wait(10000)
    Wrapper:DeleteObject(objectId)
    AddExplosion(pos.x,pos.y,pos.z,2,15.0,true,false,false)
-   local droppos = vector3(entpos.x - (entf.x - 0.1),entpos.y - (entf.y - 0.1) ,entpos.z)
+   local droppos = vec3(entpos.x - (entf.x - 0.1),entpos.y - (entf.y - 0.1) ,entpos.z)
    self:MoneyDrop(droppos)
 end
 
 function Main:MoneyDrop(pos)
-    local pos1 = vector3(pos.x - 0.1,pos.y + 0.1,pos.z)
-    local pos2 = vector3(pos.x - 0.0,pos.y + 0.0,pos.z)
-    local pos3  = vector3(pos.x - 0.4,pos.y - 0.3,pos.z)
+    local pos1 = vec3(pos.x - 0.1,pos.y + 0.1,pos.z)
+    local pos2 = vec3(pos.x - 0.0,pos.y + 0.0,pos.z)
+    local pos3  = vec3(pos.x - 0.4,pos.y - 0.3,pos.z)
     local prop = 'prop_anim_cash_pile_01'
     RequestModel(prop)
     while not HasModelLoaded(prop) do
@@ -102,7 +119,7 @@ function Main:MoneyDrop(pos)
                 Wrapper:TargetRemove('id'..i)
                 Wrapper:DeleteObject('id'..i)
                 Wait(100)
-                QBCore.Functions.TriggerCallback('bbv-atmaddmoney', function(data)
+                ESX.TriggerServerCallback('bbv-atmaddmoney', function(data) 
                     return
                 end)
             end)
@@ -111,7 +128,7 @@ function Main:MoneyDrop(pos)
 end
 
 function Main:Cooldown()
-    QBCore.Functions.TriggerCallback('bbv-atm:cooldown', function(data)
+    ESX.TriggerServerCallback('bbv-atm:cooldown', function(data) 
         _result = data
         return
     end)

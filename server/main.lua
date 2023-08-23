@@ -1,16 +1,17 @@
 Main = {}
 picked = 0
 
-QBCore.Functions.CreateCallback('bbv-atmaddmoney', function(source, cb, args)
+
+ESX.RegisterServerCallback('bbv-atmaddmoney', function(source, cb)
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
+    local Player = ESX.GetPlayerFromId(src)
     if not Player then return end
     if picked > 3 then return end -- anti exploit
     picked = picked + 1
-    Player.Functions.AddMoney('cash', Config.Settings.Reward) 
+    Player.addMoney(Config.Settings.Reward)
 end)
 
-QBCore.Functions.CreateCallback('bbv-atm:cooldown', function(source, cb, args)
+ESX.RegisterServerCallback('bbv-atm:cooldown', function(source, cb)
     if not cooldown then 
         cb(false)
     else

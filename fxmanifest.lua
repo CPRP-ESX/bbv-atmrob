@@ -1,6 +1,6 @@
 fx_version 'adamant'
 game 'gta5'
-description 'BBV CAMPERS'
+description 'BBV ATM ROB'
 version '1.0.0'
 
 
@@ -17,11 +17,9 @@ server_scripts {
 }
 
 shared_scripts {
+	'@es_extended/imports.lua',
+	'@ox_lib/init.lua',
 	'config.lua',
-}
-
-escrow_ignore {
-    'config.lua', 
 }
 
 lua54 'yes'

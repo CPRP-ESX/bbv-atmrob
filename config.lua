@@ -1,11 +1,8 @@
 Config = {}
 Config.Debug = true
 
-QBCore = exports['qb-core']:GetCoreObject() 
-
-
 Config.Settings = {
-	Framework = 'QB', -- QB ONLY
+	Framework = 'ESX', -- ESX ONLY
 	Inventory = 'OX', -- QB/OX
 	Target = "OX", -- OX/QB
 	WebHook = "", -- Discord webhook 
