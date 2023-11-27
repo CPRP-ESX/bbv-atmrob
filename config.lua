@@ -11,6 +11,6 @@ Config.Settings = {
 	},
 	Reward = 500, -- Cash Reward per bill.
 	Cooldown = 10, -- Cooldwon in minutes.
-	BombItemName = 'atm_bomb' -- Item Requierd for the robbery.
+	BombItemName = 'lockpick' -- Item Requierd for the robbery.
 }
 
