@@ -45,8 +45,9 @@ RegisterNetEvent('bbv-robatm:rob',function()
             SetEntityDrawOutlineColor(255, 1, 1, 255)
             SetEntityDrawOutlineShader(0)
 
+            AlertPolice()
             if lib.progressCircle({
-                duration = 5000,
+                duration = 45000,
                 label = "Planting the Explosive",
                 position = 'bottom',
                 useWhileDead = false,
@@ -87,8 +88,8 @@ function Main:Plant(ent)
      Wait(0)
    end
    Wrapper:CreateObject(ent,prop,pos,true,false)
-   Wrapper:Notify("The bomb will detonate in 10 seconds")
-   Wait(10000)
+   Wrapper:Notify("The bomb will detonate in 30 seconds")
+   Wait(30000)
    Wrapper:DeleteObject(objectId)
    AddExplosion(pos.x,pos.y,pos.z,2,15.0,true,false,false)
    local droppos = vec3(entpos.x - (entf.x - 0.1),entpos.y - (entf.y - 0.1) ,entpos.z)
@@ -137,9 +138,20 @@ function Main:Cooldown()
 end
 
 RegisterNetEvent('bbv-atmrob:alarm',function()
-    -- put your police dispatch export here
+    AlertPolice()
     for i=1, 30 do
         PlaySoundFrontend(-1, "TIMER_STOP", "HUD_MINI_GAME_SOUNDSET", 1)
         Wait(1000)
     end
 end)
+
+function AlertPolice()
+    local job = "police" -- Jobs that will recive the alert
+    local text = "ATM Robbery" -- Main text alert
+    local coords = GetEntityCoords(PlayerPedId()) -- Alert coords
+    local id = GetPlayerServerId(PlayerId()) -- Player that triggered the alert
+    local title = "ATM Robbery" -- Main title alert
+    local panic = false -- Allow/Disable panic effect
+    
+    TriggerServerEvent('Opto_dispatch:Server:SendAlert', job, title, text, coords, panic, id)
+end
